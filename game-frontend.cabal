@@ -1,0 +1,67 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.39.6.
+--
+-- see: https://github.com/sol/hpack
+
+name:           game-frontend
+version:        0.1.0.0
+synopsis:       A Haskell Game Frontend using Gloss
+description:    Multiplayer game frontend built with the Gloss library
+author:         Developer
+maintainer:     dev@example.com
+license:        MIT
+build-type:     Simple
+
+library
+  exposed-modules:
+      Types
+      AssetLoader
+      Input
+      GameLogic
+      NetworkClient
+      Render.Core
+      Render.Map
+      Render.UI
+  other-modules:
+      Paths_game_frontend
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , bytestring
+    , containers
+    , gloss
+    , network
+    , stm
+  default-language: Haskell2010
+
+executable game-frontend-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_game_frontend
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , game-frontend
+    , gloss
+  default-language: Haskell2010
+
+test-suite game-frontend-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_game_frontend
+  hs-source-dirs:
+      test
+  ghc-options: -threaded
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , game-frontend
+    , gloss
+    , hspec
+  default-language: Haskell2010

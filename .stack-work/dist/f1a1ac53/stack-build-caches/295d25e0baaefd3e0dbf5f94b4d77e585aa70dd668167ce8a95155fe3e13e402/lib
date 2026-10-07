@@ -1,0 +1,26 @@
+C:\Users\gamat\AppData\Local\Programs\stack\x86_64-windows\ghc-9.4.8\lib\x86_64-windows-ghc-9.4.8\rts-1.0.2\include\ghcversion.h:
+  hash: 4bc88722407a89d1efbfa9c116cd4017af6ea3ff746643032b96cef62782f5dd
+D:\game-frontend\.stack-work\dist\f1a1ac53\build\autogen\Paths_game_frontend.hs:
+  hash: 1a821a5083139e3589007046a9ff5b899f9c4b14ce86cbcfaee3bb547bf90b89
+D:\game-frontend\.stack-work\dist\f1a1ac53\build\autogen\cabal_macros.h:
+  hash: 66ef77e7c170584bc3248a1ff50e06a8e4ce75fd68eb34968586b636af7dfaeb
+D:\game-frontend\game-frontend.cabal:
+  hash: cb6e17e4c47fc2983ac15f0b8fb4d30adeac5e6008eed7eac18e2be1641ba900
+D:\game-frontend\package.yaml:
+  hash: e50dbbaa373232880df6837d6cd1620b317dc25e9c6a55ef5955f15e4785c535
+D:\game-frontend\src\AssetLoader.hs:
+  hash: fc30b7e7dc9d314fce4e4a238b61b7ac4462d3bd3977ddedbb701fb57cc32855
+D:\game-frontend\src\GameLogic.hs:
+  hash: b031b128b711f74a736beecfe2f58ee67434b7e434b12e413e47922fb4a045aa
+D:\game-frontend\src\Input.hs:
+  hash: 4b64b94f030a01f2e0428d312fb234fae1420fe8f78739493c158bb69c32a53f
+D:\game-frontend\src\NetworkClient.hs:
+  hash: 5eb2af55df9465f0a6544eb8f7868a3168da6e0d87ca25b3224288e91b5bd308
+D:\game-frontend\src\Render\Core.hs:
+  hash: cc2a51550a78b6f528416961b8c09b5bca5aaa7f66b8a8787f681f43824914dc
+D:\game-frontend\src\Render\Map.hs:
+  hash: 2833e68e2f34efad29e91d471264425956a574930bee97298275103bab328aa3
+D:\game-frontend\src\Render\UI.hs:
+  hash: 9c7968b510e6c4415834ac13e8687ff9b7fc08b3cb9827d19b27e7a32f9a5316
+D:\game-frontend\src\Types.hs:
+  hash: 0f3cff3226779ff600040c93560c3593d9f0c2c71628136521193131da29bb7d
