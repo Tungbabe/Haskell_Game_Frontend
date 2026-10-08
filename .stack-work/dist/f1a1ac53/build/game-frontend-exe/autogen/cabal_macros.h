@@ -20,6 +20,16 @@
   (major1) == 4 && (major2) <  17 || \
   (major1) == 4 && (major2) == 17 && (minor) <= 2)
 #endif /* MIN_VERSION_base */
+/* package bytestring-0.11.5.3 */
+#ifndef VERSION_bytestring
+#define VERSION_bytestring "0.11.5.3"
+#endif /* VERSION_bytestring */
+#ifndef MIN_VERSION_bytestring
+#define MIN_VERSION_bytestring(major1,major2,minor) (\
+  (major1) <  0 || \
+  (major1) == 0 && (major2) <  11 || \
+  (major1) == 0 && (major2) == 11 && (minor) <= 5)
+#endif /* MIN_VERSION_bytestring */
 /* package containers-0.6.7 */
 #ifndef VERSION_containers
 #define VERSION_containers "0.6.7"
@@ -30,6 +40,16 @@
   (major1) == 0 && (major2) <  6 || \
   (major1) == 0 && (major2) == 6 && (minor) <= 7)
 #endif /* MIN_VERSION_containers */
+/* package directory-1.3.7.1 */
+#ifndef VERSION_directory
+#define VERSION_directory "1.3.7.1"
+#endif /* VERSION_directory */
+#ifndef MIN_VERSION_directory
+#define MIN_VERSION_directory(major1,major2,minor) (\
+  (major1) <  1 || \
+  (major1) == 1 && (major2) <  3 || \
+  (major1) == 1 && (major2) == 3 && (minor) <= 7)
+#endif /* MIN_VERSION_directory */
 /* package game-frontend-0.1.0.0 */
 #ifndef VERSION_game_frontend
 #define VERSION_game_frontend "0.1.0.0"
@@ -50,6 +70,36 @@
   (major1) == 1 && (major2) <  13 || \
   (major1) == 1 && (major2) == 13 && (minor) <= 2)
 #endif /* MIN_VERSION_gloss */
+/* package network-3.1.4.0 */
+#ifndef VERSION_network
+#define VERSION_network "3.1.4.0"
+#endif /* VERSION_network */
+#ifndef MIN_VERSION_network
+#define MIN_VERSION_network(major1,major2,minor) (\
+  (major1) <  3 || \
+  (major1) == 3 && (major2) <  1 || \
+  (major1) == 3 && (major2) == 1 && (minor) <= 4)
+#endif /* MIN_VERSION_network */
+/* package process-1.6.18.0 */
+#ifndef VERSION_process
+#define VERSION_process "1.6.18.0"
+#endif /* VERSION_process */
+#ifndef MIN_VERSION_process
+#define MIN_VERSION_process(major1,major2,minor) (\
+  (major1) <  1 || \
+  (major1) == 1 && (major2) <  6 || \
+  (major1) == 1 && (major2) == 6 && (minor) <= 18)
+#endif /* MIN_VERSION_process */
+/* package stm-2.5.1.0 */
+#ifndef VERSION_stm
+#define VERSION_stm "2.5.1.0"
+#endif /* VERSION_stm */
+#ifndef MIN_VERSION_stm
+#define MIN_VERSION_stm(major1,major2,minor) (\
+  (major1) <  2 || \
+  (major1) == 2 && (major2) <  5 || \
+  (major1) == 2 && (major2) == 5 && (minor) <= 1)
+#endif /* MIN_VERSION_stm */
 
 /* tool gcc-14.0.6 */
 #ifndef TOOL_VERSION_gcc
@@ -123,7 +173,7 @@
 #endif /* MIN_TOOL_VERSION_runghc */
 
 #ifndef CURRENT_COMPONENT_ID
-#define CURRENT_COMPONENT_ID "game-frontend-0.1.0.0-HKjbdnMQ3387dTAlK2SqbP-game-frontend-exe"
+#define CURRENT_COMPONENT_ID "game-frontend-0.1.0.0-8hb5nB9ewBNFWP0lUbD8Mc-game-frontend-exe"
 #endif /* CURRENT_COMPONENT_ID */
 #ifndef CURRENT_PACKAGE_VERSION
 #define CURRENT_PACKAGE_VERSION "0.1.0.0"

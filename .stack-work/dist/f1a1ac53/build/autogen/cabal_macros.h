@@ -40,6 +40,16 @@
   (major1) == 0 && (major2) <  6 || \
   (major1) == 0 && (major2) == 6 && (minor) <= 7)
 #endif /* MIN_VERSION_containers */
+/* package directory-1.3.7.1 */
+#ifndef VERSION_directory
+#define VERSION_directory "1.3.7.1"
+#endif /* VERSION_directory */
+#ifndef MIN_VERSION_directory
+#define MIN_VERSION_directory(major1,major2,minor) (\
+  (major1) <  1 || \
+  (major1) == 1 && (major2) <  3 || \
+  (major1) == 1 && (major2) == 3 && (minor) <= 7)
+#endif /* MIN_VERSION_directory */
 /* package gloss-1.13.2.2 */
 #ifndef VERSION_gloss
 #define VERSION_gloss "1.13.2.2"
@@ -60,6 +70,16 @@
   (major1) == 3 && (major2) <  1 || \
   (major1) == 3 && (major2) == 1 && (minor) <= 4)
 #endif /* MIN_VERSION_network */
+/* package process-1.6.18.0 */
+#ifndef VERSION_process
+#define VERSION_process "1.6.18.0"
+#endif /* VERSION_process */
+#ifndef MIN_VERSION_process
+#define MIN_VERSION_process(major1,major2,minor) (\
+  (major1) <  1 || \
+  (major1) == 1 && (major2) <  6 || \
+  (major1) == 1 && (major2) == 6 && (minor) <= 18)
+#endif /* MIN_VERSION_process */
 /* package stm-2.5.1.0 */
 #ifndef VERSION_stm
 #define VERSION_stm "2.5.1.0"
@@ -143,10 +163,10 @@
 #endif /* MIN_TOOL_VERSION_runghc */
 
 #ifndef CURRENT_PACKAGE_KEY
-#define CURRENT_PACKAGE_KEY "game-frontend-0.1.0.0-5EIZgYS0iBaCOPxQxBiA2w"
+#define CURRENT_PACKAGE_KEY "game-frontend-0.1.0.0-8HljF8SaI9U2Pz6DlobPzt"
 #endif /* CURRENT_packageKey */
 #ifndef CURRENT_COMPONENT_ID
-#define CURRENT_COMPONENT_ID "game-frontend-0.1.0.0-5EIZgYS0iBaCOPxQxBiA2w"
+#define CURRENT_COMPONENT_ID "game-frontend-0.1.0.0-8HljF8SaI9U2Pz6DlobPzt"
 #endif /* CURRENT_COMPONENT_ID */
 #ifndef CURRENT_PACKAGE_VERSION
 #define CURRENT_PACKAGE_VERSION "0.1.0.0"

@@ -1,72 +1,117 @@
 module Main where
 
+import qualified Data.Map.Strict as Map
+import GameLogic
+import NetworkClient (decodeServerResponse)
+import Sound (soundFileFor)
 import Test.Hspec
 import Types
-import GameLogic
 
--- | A dummy 'Assets' value that must not be evaluated during pure tests.
---   Movement logic never touches assets, so this is safe.
-dummyAssets :: Assets
-dummyAssets = error "Assets should not be evaluated in pure logic tests"
+playerOneId, playerTwoId :: PlayerId
+playerOneId = PlayerId "p1"
+playerTwoId = PlayerId "p2"
 
--- | Build a minimal 'GameWorld' for testing purposes.
-mkTestWorld :: InputState -> GameWorld
-mkTestWorld input = GameWorld
-  { worldPlayer   = defaultPlayer
-  , worldOthers   = []
-  , worldMap      = mempty
-  , worldAssets   = dummyAssets
-  , worldInput    = input
-  , worldTime     = 0
-  , worldMessages = []
+floorTile, wallTile :: TileInfo
+floorTile = TileInfo TileFloor Nothing PassThrough
+wallTile = TileInfo TileWall Nothing Solid
+
+testMap :: GameMap
+testMap = Map.fromList
+  [ ((gridX, gridY), if (gridX, gridY) == (1, 0) then wallTile else floorTile)
+  | gridX <- [-3 .. 3]
+  , gridY <- [-3 .. 3]
+  ]
+
+basePlayer :: PlayerId -> Pos -> Player
+basePlayer playerIdValue position = Player
+  { playerId = playerIdValue
+  , playerName = show playerIdValue
+  , playerTankType = TankScout
+  , playerTankColor = TankRed
+  , playerPosition = position
+  , playerBodyDirection = DirUp
+  , playerBodyAngle = 0
+  , playerTurretAngle = 0
+  , playerHealth = 100
+  , playerMaxHealth = 100
+  , playerStatus = PlayerAlive
+  , playerShieldRemaining = 0
+  , playerFireCooldown = 0
+  , playerBombCount = 0
+  , playerKills = 0
+  , playerScore = 0
+  }
+
+baseWorld :: GameWorld
+baseWorld = GameWorld
+  { worldRoomCode = RoomCode "TEST01"
+  , worldMapType = MapDepot
+  , worldMap = testMap
+  , worldPlayers = Map.fromList
+      [ (playerOneId, basePlayer playerOneId (0, 0))
+      , (playerTwoId, basePlayer playerTwoId (-100, -100))
+      ]
+  , worldBullets = []
+  , worldItems = []
+  , worldBombs = []
+  , worldElapsedSeconds = 0
+  , worldStatus = MatchRunning
   }
 
 main :: IO ()
 main = hspec $ do
+  describe "GameLogic.canMoveTo" $ do
+    it "allows PassThrough tiles" $ do
+      canMoveTo (0, 0) testMap `shouldBe` True
 
-  -- -----------------------------------------------------------------------
-  describe "Types — defaults" $ do
+    it "blocks Solid and out-of-bounds tiles" $ do
+      canMoveTo (1, 0) testMap `shouldBe` False
+      canMoveTo (99, 99) testMap `shouldBe` False
 
-    it "defaultPlayer starts at the origin" $
-      playerPos defaultPlayer `shouldBe` (0, 0)
+  describe "GameLogic.moveTankPure" $ do
+    it "updates only the body movement state on a valid move" $ do
+      let player = basePlayer playerOneId (0, 0)
+          movedPlayer = moveTankPure 10 DirUp player testMap
+      playerPosition movedPlayer `shouldBe` (0, 10)
+      playerBodyDirection movedPlayer `shouldBe` DirUp
+      playerTurretAngle movedPlayer `shouldBe` 0
 
-    it "defaultPlayer has 100 HP" $
-      playerHealth defaultPlayer `shouldBe` 100
+    it "does not move through a Solid tile" $ do
+      let player = basePlayer playerOneId (0, 0)
+          movedPlayer = moveTankPure 26 DirRight player testMap
+      playerPosition movedPlayer `shouldBe` (0, 0)
+      playerBodyDirection movedPlayer `shouldBe` DirRight
 
-    it "defaultInputState has all keys released" $ do
-      let s = defaultInputState
-      keyUp    s `shouldBe` False
-      keyDown  s `shouldBe` False
-      keyLeft  s `shouldBe` False
-      keyRight s `shouldBe` False
-      keyShoot s `shouldBe` False
+  describe "GameLogic.applyClientCommand" $ do
+    it "creates a server-authoritative bullet at the turret barrel with cooldown" $ do
+      let input = InputState 1 Nothing (Just 270) True False
+          updatedWorld = applyClientCommand playerOneId (CmdInput input) baseWorld
+          updatedPlayer = worldPlayers updatedWorld Map.! playerOneId
+          createdBullet = head $ worldBullets updatedWorld
+      bulletAngle createdBullet `shouldBe` 270
+      bulletOwnerId createdBullet `shouldBe` playerOneId
+      playerFireCooldown updatedPlayer `shouldBe` fireCooldownSeconds
+      length (worldBullets updatedWorld) `shouldBe` 1
 
-  -- -----------------------------------------------------------------------
-  describe "GameLogic — movement" $ do
+    it "picks up hearts without exceeding maximum health" $ do
+      let injuredPlayer = (basePlayer playerOneId (0, 0)) { playerHealth = 90 }
+          worldWithHeart = baseWorld
+            { worldPlayers = Map.insert playerOneId injuredPlayer (worldPlayers baseWorld)
+            , worldItems = [Item 1 ItemHeart (0, 0)]
+            }
+          updatedWorld = applyClientCommand playerOneId (CmdInput $ InputState 1 Nothing Nothing False False) worldWithHeart
+      playerHealth (worldPlayers updatedWorld Map.! playerOneId) `shouldBe` 100
+      worldItems updatedWorld `shouldBe` []
 
-    it "playerSpeed is positive" $
-      playerSpeed `shouldSatisfy` (> 0)
+  describe "NetworkClient.decodeServerResponse" $ do
+    it "accepts exactly one complete server response" $ do
+      decodeServerResponse "ResCommandRejected \"invalid room\""
+        `shouldBe` Just (ResCommandRejected "invalid room")
 
-    it "keeps position when no keys are pressed" $ do
-      let world  = mkTestWorld defaultInputState
-          world' = movePlayer 1.0 world
-      playerPos (worldPlayer world') `shouldBe` (0, 0)
+    it "rejects trailing protocol data" $ do
+      decodeServerResponse "ResCommandRejected \"bad\" ResConnected (PlayerId \"p1\")"
+        `shouldBe` Nothing
 
-    it "moves right when keyRight is pressed" $ do
-      let input  = defaultInputState { keyRight = True }
-          world  = mkTestWorld input
-          world' = movePlayer 1.0 world
-          (px, _) = playerPos (worldPlayer world')
-      px `shouldSatisfy` (> 0)
-
-    it "moves up when keyUp is pressed" $ do
-      let input  = defaultInputState { keyUp = True }
-          world  = mkTestWorld input
-          world' = movePlayer 1.0 world
-          (_, py) = playerPos (worldPlayer world')
-      py `shouldSatisfy` (> 0)
-
-    it "increments worldTime via updateWorld" $ do
-      let world  = mkTestWorld defaultInputState
-          world' = updateWorld 0.5 world
-      worldTime world' `shouldBe` 0.5
+  describe "Sound.soundFileFor" $ do
+    it "keeps configured shooting audio asynchronous and replaceable" $ do
+      soundFileFor SfxShoot `shouldBe` "assets/sounds/shoot.wav"

@@ -1,145 +1,344 @@
-module Types where
+module Types
+  ( Direction(..)
+  , Pos
+  , GridPos
+  , CollisionType(..)
+  , TileType(..)
+  , PropType(..)
+  , TileInfo(..)
+  , GameMap
+  , ItemType(..)
+  , Item(..)
+  , TankType(..)
+  , TankColor(..)
+  , PlayerId(..)
+  , PlayerStatus(..)
+  , Player(..)
+  , Bullet(..)
+  , Bomb(..)
+  , MapType(..)
+  , RoomCode(..)
+  , RoomPlayer(..)
+  , RoomStatus(..)
+  , GameRoom(..)
+  , InputState(..)
+  , InterpolationState(..)
+  , MatchStatus(..)
+  , GameWorld(..)
+  , RankingEntry(..)
+  , MatchResult(..)
+  , GameScreen(..)
+  , ClientCommand(..)
+  , ServerResponse(..)
+  , UiAsset(..)
+  , Assets(..)
+  , MusicTrack(..)
+  , SoundEffect(..)
+  , AudioCommand(..)
+  ) where
 
-import           Graphics.Gloss
 import qualified Data.Map.Strict as Map
+import Graphics.Gloss (Picture)
 
--- ---------------------------------------------------------------------------
--- Direction & Position
--- ---------------------------------------------------------------------------
-
--- | Cardinal direction the player is facing.
-data Direction = DirUp | DirDown | DirLeft | DirRight
-  deriving (Show, Read, Eq, Ord)
-
--- | 2‑D position in world coordinates.
+-- | Positions in world-space pixels.  Grid coordinates remain integral so they
+-- | are safe keys for 'GameMap'.
 type Pos = (Float, Float)
 
--- ---------------------------------------------------------------------------
--- Map tiles
--- ---------------------------------------------------------------------------
+type GridPos = (Int, Int)
 
--- | The different kinds of tile that can appear on the map.
-data Tile = Wall | Floor | Empty
+-- | The four directions used for movement, shooting, and directional sprites.
+data Direction
+  = DirUp
+  | DirDown
+  | DirLeft
+  | DirRight
   deriving (Show, Read, Eq, Ord)
 
--- | A game map: sparse grid of tiles keyed by (column, row).
-type GameMap = Map.Map (Int, Int) Tile
+data CollisionType
+  = Solid
+  | PassThrough
+  deriving (Show, Read, Eq, Ord)
 
--- ---------------------------------------------------------------------------
--- Player
--- ---------------------------------------------------------------------------
+-- | Large map objects.  Every constructor other than 'TileFloor' is intended
+-- | to be created with 'Solid' collision.
+data TileType
+  = TileFloor
+  | TileWall
+  | TileBox
+  | TileFurniture
+  | TileObstacle
+  deriving (Show, Read, Eq, Ord)
 
--- | State of a single player.
+-- | The only three decorative map props.  They are rendered over floor tiles
+-- | and always use 'PassThrough' collision.
+data PropType
+  = PropPlant
+  | PropSign
+  | PropRubble
+  deriving (Show, Read, Eq, Ord)
+
+data TileInfo = TileInfo
+  { tileType :: TileType
+  , tileDecoration :: Maybe PropType
+  , tileCollision :: CollisionType
+  }
+  deriving (Show, Read, Eq)
+
+type GameMap = Map.Map GridPos TileInfo
+
+data ItemType
+  = ItemHeart
+  | ItemShield
+  | ItemBomb
+  deriving (Show, Read, Eq, Ord)
+
+data Item = Item
+  { itemId :: Int
+  , itemType :: ItemType
+  , itemPosition :: Pos
+  }
+  deriving (Show, Read, Eq)
+
+data TankType
+  = TankScout
+  | TankHeavy
+  | TankArtillery
+  deriving (Show, Read, Eq, Ord)
+
+data TankColor
+  = TankRed
+  | TankBlue
+  | TankGreen
+  deriving (Show, Read, Eq, Ord)
+
+newtype PlayerId = PlayerId String
+  deriving (Show, Read, Eq, Ord)
+
+newtype RoomCode = RoomCode String
+  deriving (Show, Read, Eq, Ord)
+
+data PlayerStatus
+  = PlayerAlive
+  | PlayerDead
+  deriving (Show, Read, Eq, Ord)
+
+-- | A player state in an authoritative game snapshot.  The server alone
+-- | changes health, shield duration, bombs, score, kills, and status.
 data Player = Player
-  { playerPos       :: !Pos
-  , playerDirection :: !Direction
-  , playerHealth    :: !Int
-  , playerName      :: !String
-  } deriving (Show, Read, Eq)
-
--- ---------------------------------------------------------------------------
--- Assets
--- ---------------------------------------------------------------------------
-
--- | Collection of loaded image assets.
-data Assets = Assets
-  { assetPlayer :: Picture
-  , assetWall   :: Picture
+  { playerId :: PlayerId
+  , playerName :: String
+  , playerTankType :: TankType
+  , playerTankColor :: TankColor
+  , playerPosition :: Pos
+  , playerBodyDirection :: Direction
+  , playerBodyAngle :: Float
+  , playerTurretAngle :: Float
+  , playerHealth :: Int
+  , playerMaxHealth :: Int
+  , playerStatus :: PlayerStatus
+  , playerShieldRemaining :: Float
+  , playerFireCooldown :: Float
+  , playerBombCount :: Int
+  , playerKills :: Int
+  , playerScore :: Int
   }
+  deriving (Show, Read, Eq)
 
--- Manual Show instance because Picture's default Show is verbose.
-instance Show Assets where
-  show _ = "Assets{..}"
+data Bullet = Bullet
+  { bulletId :: Int
+  , bulletPosition :: Pos
+  , bulletAngle :: Float
+  , bulletSpeed :: Float
+  , bulletDamage :: Int
+  , bulletOwnerId :: PlayerId
+  }
+  deriving (Show, Read, Eq)
 
--- ---------------------------------------------------------------------------
--- Input
--- ---------------------------------------------------------------------------
+-- | A bomb remains in the world until its fuse reaches zero, at which point
+-- | the server applies damage to alive, unshielded players in its radius.
+data Bomb = Bomb
+  { bombId :: Int
+  , bombOwnerId :: PlayerId
+  , bombPosition :: Pos
+  , bombFuseRemaining :: Float
+  , bombRadius :: Float
+  , bombDamage :: Int
+  }
+  deriving (Show, Read, Eq)
 
--- | Snapshot of which keys are currently held down.
+data MapType
+  = MapDepot
+  | MapForest
+  | MapRuins
+  deriving (Show, Read, Eq, Ord)
+
+data RoomPlayer = RoomPlayer
+  { roomPlayerId :: PlayerId
+  , roomPlayerName :: String
+  , roomPlayerTankType :: Maybe TankType
+  , roomPlayerTankColor :: Maybe TankColor
+  , roomPlayerReady :: Bool
+  }
+  deriving (Show, Read, Eq)
+
+data RoomStatus
+  = RoomLobby
+  | RoomPlaying
+  | RoomFinished
+  deriving (Show, Read, Eq, Ord)
+
+-- | A room has a server-enforced capacity of two or three players.
+data GameRoom = GameRoom
+  { roomCode :: RoomCode
+  , roomHostId :: PlayerId
+  , roomPlayers :: Map.Map PlayerId RoomPlayer
+  , roomSelectedMap :: Maybe MapType
+  , roomMaxPlayers :: Int
+  , roomStatus :: RoomStatus
+  }
+  deriving (Show, Read, Eq)
+
+-- | Input is sent from the client to the server.  The sequence number lets the
+-- | server discard delayed input without trusting a client position.
 data InputState = InputState
-  { keyUp    :: !Bool
-  , keyDown  :: !Bool
-  , keyLeft  :: !Bool
-  , keyRight :: !Bool
-  , keyShoot :: !Bool
-  } deriving (Show, Eq)
+  { inputSequence :: Int
+  , inputMoveDirection :: Maybe Direction
+  , inputAimAngle :: Maybe Float
+  , inputShootPressed :: Bool
+  , inputUseBombPressed :: Bool
+  }
+  deriving (Show, Read, Eq)
 
--- ---------------------------------------------------------------------------
--- Game World
--- ---------------------------------------------------------------------------
+-- | Client-only state used to lerp a remote tank from the last rendered
+-- | position towards the latest server position.
+data InterpolationState = InterpolationState
+  { interpolationPosition :: Pos
+  , interpolationTarget :: Pos
+  }
+  deriving (Show, Read, Eq)
 
--- | The complete, top‑level game state.
+data MatchStatus
+  = MatchWaiting
+  | MatchRunning
+  | MatchComplete
+  deriving (Show, Read, Eq, Ord)
+
+-- | A complete server-authoritative match snapshot.  Clients may render it,
+-- | but may only predict their own input locally; all gameplay fields are
+-- | validated by the server.
 data GameWorld = GameWorld
-  { worldPlayer   :: !Player
-  , worldOthers   :: ![Player]
-  , worldMap      :: !GameMap
-  , worldAssets   :: !Assets
-  , worldInput    :: !InputState
-  , worldTime     :: !Float
-  , worldMessages :: ![String]
-  } deriving (Show)
+  { worldRoomCode :: RoomCode
+  , worldMapType :: MapType
+  , worldMap :: GameMap
+  , worldPlayers :: Map.Map PlayerId Player
+  , worldBullets :: [Bullet]
+  , worldItems :: [Item]
+  , worldBombs :: [Bomb]
+  , worldElapsedSeconds :: Float
+  , worldStatus :: MatchStatus
+  }
+  deriving (Show, Read, Eq)
 
--- ---------------------------------------------------------------------------
--- Game Screen (application state machine)
--- ---------------------------------------------------------------------------
+data RankingEntry = RankingEntry
+  { rankingPlayerId :: PlayerId
+  , rankingPlayerName :: String
+  , rankingTankType :: TankType
+  , rankingTankColor :: TankColor
+  , rankingKills :: Int
+  , rankingScore :: Int
+  , rankingPlace :: Int
+  }
+  deriving (Show, Read, Eq)
 
--- | Top‑level screen the application can be in.
+data MatchResult = MatchResult
+  { resultWinnerId :: Maybe PlayerId
+  , resultRanking :: [RankingEntry]
+  }
+  deriving (Show, Read, Eq)
+
 data GameScreen
-  = MainMenu              -- ^ Title / main‑menu screen
-  | InGame   GameWorld     -- ^ Active gameplay
-  | GameOver String        -- ^ End screen with a reason message
-  deriving (Show)
+  = ScreenMainMenu
+  | ScreenCreateRoom
+  | ScreenJoinRoom
+  | ScreenLobby GameRoom
+  | ScreenMatch GameWorld
+  | ScreenResults MatchResult
+  deriving (Show, Read, Eq)
 
--- ---------------------------------------------------------------------------
--- Network Protocol
--- ---------------------------------------------------------------------------
-
--- | Commands the client sends to the server.
+-- | All values sent from a client to a server.  In particular, no command
+-- | carries a requested position, health value, or damage amount.
 data ClientCommand
-  = CmdMove      Direction         -- ^ Request to move in a direction
-  | CmdShoot     Pos Direction     -- ^ Fire from position towards direction
-  | CmdJoin      String            -- ^ Join lobby with player name
-  | CmdLeave                       -- ^ Gracefully disconnect
-  | CmdChat      String            -- ^ Send a chat message
-  | CmdPing                        -- ^ Keep‑alive ping
+  = CmdCreateRoom String Int
+  | CmdJoinRoom RoomCode String
+  | CmdLeaveRoom
+  | CmdSelectTank TankType TankColor
+  | CmdSetReady Bool
+  | CmdSelectMap MapType
+  | CmdStartMatch
+  | CmdInput InputState
+  | CmdPlayAgain
   deriving (Show, Read, Eq)
 
--- | Responses / events the server sends back to clients.
 data ServerResponse
-  = RspWorldState  [Player] GameMap  -- ^ Full authoritative state snapshot
-  | RspPlayerJoined String Pos       -- ^ Another player joined at position
-  | RspPlayerLeft   String           -- ^ A player disconnected
-  | RspDamage       String Int       -- ^ Player took damage (name, new HP)
-  | RspChat         String String    -- ^ Chat message (sender, text)
-  | RspGameOver     String           -- ^ Game ended with reason
-  | RspPong                          -- ^ Reply to CmdPing
+  = ResConnected PlayerId
+  | ResRoomCreated GameRoom
+  | ResRoomUpdated GameRoom
+  | ResMatchStarted GameWorld
+  | ResWorldSnapshot GameWorld
+  | ResMatchEnded MatchResult
+  | ResAudio SoundEffect
+  | ResCommandRejected String
   deriving (Show, Read, Eq)
 
--- ---------------------------------------------------------------------------
--- Defaults & Constructors
--- ---------------------------------------------------------------------------
+-- | UI assets are separate so every screen can use its own BMP image.
+data UiAsset
+  = UiMenuBackground
+  | UiCreateRoomButton
+  | UiJoinRoomButton
+  | UiStartMatchButton
+  | UiPlayAgainButton
+  | UiMainMenuButton
+  | UiVictoryPanel
+  | UiDefeatPanel
+  deriving (Show, Read, Eq, Ord)
 
--- | No keys pressed.
-defaultInputState :: InputState
-defaultInputState = InputState False False False False False
-
--- | A fresh player at the origin.
-defaultPlayer :: Player
-defaultPlayer = Player
-  { playerPos       = (0, 0)
-  , playerDirection = DirDown
-  , playerHealth    = 100
-  , playerName      = "Player1"
+-- | Loaded image data.  'Picture' intentionally has no 'Read' instance, so
+-- | assets stay out of all network messages and do not derive serialization.
+data Assets = Assets
+  { assetsTankBodySprites :: Map.Map (TankType, TankColor, Direction) Picture
+  , assetsTankTurretSprites :: Map.Map (TankType, TankColor) Picture
+  , assetsTileSprites :: Map.Map TileType Picture
+  , assetsPropSprites :: Map.Map PropType Picture
+  , assetsItemSprites :: Map.Map ItemType Picture
+  , assetsBulletSprites :: Map.Map TankColor Picture
+  , assetsExplosionFrames :: [Picture]
+  , assetsMenuBackground :: Picture
+  , assetsCreateRoomButton :: Picture
+  , assetsJoinRoomButton :: Picture
+  , assetsExitButton :: Picture
+  , assetsMapButtonSprites :: Map.Map MapType Picture
+  , assetsUiSprites :: Map.Map UiAsset Picture
   }
 
--- | Build an initial 'GameWorld' from loaded assets and a map.
-mkGameWorld :: Assets -> GameMap -> GameWorld
-mkGameWorld assets gameMap = GameWorld
-  { worldPlayer   = defaultPlayer
-  , worldOthers   = []
-  , worldMap      = gameMap
-  , worldAssets   = assets
-  , worldInput    = defaultInputState
-  , worldTime     = 0
-  , worldMessages = ["Welcome to the game!"]
-  }
+data MusicTrack
+  = MusicMenu
+  | MusicMatch
+  deriving (Show, Read, Eq, Ord)
+
+data SoundEffect
+  = SfxUiClick
+  | SfxShoot
+  | SfxItemPickup ItemType
+  | SfxBombExplosion
+  | SfxKill
+  | SfxDeath
+  | SfxVictory
+  | SfxDefeat
+  deriving (Show, Read, Eq)
+
+-- | Commands consumed by a background audio worker through a TChan.
+data AudioCommand
+  = PlayMusic MusicTrack
+  | StopMusic
+  | PlaySound SoundEffect
+  deriving (Show, Read, Eq)

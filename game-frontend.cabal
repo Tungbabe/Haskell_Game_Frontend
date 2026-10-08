@@ -16,13 +16,14 @@ build-type:     Simple
 library
   exposed-modules:
       Types
-      AssetLoader
-      Input
       GameLogic
       NetworkClient
+      Server
       Render.Core
       Render.Map
       Render.UI
+      Render.Camera
+      Sound
   other-modules:
       Paths_game_frontend
   hs-source-dirs:
@@ -31,8 +32,10 @@ library
       base >=4.7 && <5
     , bytestring
     , containers
+    , directory
     , gloss
     , network
+    , process
     , stm
   default-language: Haskell2010
 
@@ -45,9 +48,33 @@ executable game-frontend-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , bytestring
     , containers
+    , directory
     , game-frontend
     , gloss
+    , network
+    , process
+    , stm
+  default-language: Haskell2010
+
+executable game-server-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_game_frontend
+  hs-source-dirs:
+      server
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , bytestring
+    , containers
+    , directory
+    , game-frontend
+    , gloss
+    , network
+    , process
+    , stm
   default-language: Haskell2010
 
 test-suite game-frontend-test
@@ -60,8 +87,13 @@ test-suite game-frontend-test
   ghc-options: -threaded
   build-depends:
       base >=4.7 && <5
+    , bytestring
     , containers
+    , directory
     , game-frontend
     , gloss
     , hspec
+    , network
+    , process
+    , stm
   default-language: Haskell2010

@@ -43,7 +43,7 @@ getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: 
 
 bindir, libdir, dynlibdir, datadir, libexecdir, sysconfdir :: FilePath
 bindir     = "D:\\game-frontend\\.stack-work\\install\\1eee3797\\bin"
-libdir     = "D:\\game-frontend\\.stack-work\\install\\1eee3797\\lib\\x86_64-windows-ghc-9.4.8\\game-frontend-0.1.0.0-5EIZgYS0iBaCOPxQxBiA2w"
+libdir     = "D:\\game-frontend\\.stack-work\\install\\1eee3797\\lib\\x86_64-windows-ghc-9.4.8\\game-frontend-0.1.0.0-8HljF8SaI9U2Pz6DlobPzt"
 dynlibdir  = "D:\\game-frontend\\.stack-work\\install\\1eee3797\\lib\\x86_64-windows-ghc-9.4.8"
 datadir    = "D:\\game-frontend\\.stack-work\\install\\1eee3797\\share\\x86_64-windows-ghc-9.4.8\\game-frontend-0.1.0.0"
 libexecdir = "D:\\game-frontend\\.stack-work\\install\\1eee3797\\libexec\\x86_64-windows-ghc-9.4.8\\game-frontend-0.1.0.0"
